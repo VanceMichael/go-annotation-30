@@ -3,7 +3,6 @@ package settle
 
 import (
 	"fmt"
-	"math"
 	"sort"
 
 	"microdrama/internal/model"
@@ -83,8 +82,15 @@ func Split(totalFen int64, parties []model.Party) ([]Share, error) {
 
 	ordered := orderParties(parties)
 	out := make([]Share, 0, len(ordered))
-	for _, p := range ordered {
-		amount := int64(math.Round(float64(totalFen) * float64(p.ShareBP) / 10000))
+	var allocated int64
+	for i, p := range ordered {
+		var amount int64
+		if i == len(ordered)-1 {
+			amount = totalFen - allocated
+		} else {
+			amount = totalFen * int64(p.ShareBP) / 10000
+			allocated += amount
+		}
 		out = append(out, Share{
 			PartyID:   p.ID,
 			Name:      p.Name,
